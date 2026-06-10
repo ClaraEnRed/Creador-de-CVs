@@ -80,16 +80,25 @@
 <body>
 <div class="wrap" id="app"></div>
 <script>
-const TOTAL=6;
+const TOTAL=7;
 const estado={ paso:0, d:{
+  genero:null,
   nombre:"", ciudad:"", tel:"", email:"",
   trabajos:[],
   haCuidado:null, cuidadoQuien:"", cuidadoAnios:"", cuidadoComp:[],
   fortalezas:[], idiomas:[], estudios:[]
 }};
-const FORTALEZAS=["Trato con la gente","Limpieza y orden","Cocinar","Cuidar a personas","Atención al cliente","Trabajar en equipo","Organizar y planificar","Vender","Manejar caja","Conducir","Aprender rápido","Tener paciencia","Ser responsable","No rendirse fácil"];
 const COMP_CUIDADO=["Organización","Paciencia","Resolver problemas","Tomar decisiones","Estar pendiente de todo","Tratar con médicos y trámites","Aguantar bajo presión","Gestionar emociones"];
 const NIVELES=["Es mi idioma","Lo hablo muy bien","Me defiendo","Lo hablo un poco"];
+ 
+// ----- género: g(femenino, masculino) -----
+function esF(){ return estado.d.genero!=="hombre"; } // por defecto femenino
+function g(fem,masc){ return esF()?fem:masc; }
+ 
+function fortalezasLista(){
+  return ["Trato con la gente","Limpieza y orden","Cocinar","Cuidar a personas","Atención al cliente","Trabajar en equipo","Organizar y planificar","Vender","Manejar caja","Conducir","Aprender rápido","Tener paciencia",g("Ser responsable","Ser responsable"),"No rendirse fácil"];
+}
+ 
 function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function render(){ document.getElementById("app").innerHTML=vista(); enlazar(); window.scrollTo(0,0); }
 function vista(){
@@ -116,10 +125,17 @@ function vista(){
 function contenido(p){
   const d=estado.d;
   if(p===0) return `
+    <p class="pregunta">Antes de empezar...</p>
+    <p class="ayuda">Para escribir bien tu currículum, dinos cómo prefieres que hablemos de ti.</p>
+    <div class="opciones">
+      ${uniGen("mujer","Soy mujer")}
+      ${uniGen("hombre","Soy hombre")}
+    </div>`;
+  if(p===1) return `
     <p class="pregunta">¿Cómo te llamas?</p>
     <p class="ayuda">Escribe tu nombre y tus apellidos.</p>
-    <input data-k="nombre" value="${esc(d.nombre)}" placeholder="María López García" autofocus>`;
-  if(p===1) return `
+    <input data-k="nombre" value="${esc(d.nombre)}" placeholder="${g("María López García","Juan López García")}" autofocus>`;
+  if(p===2) return `
     <p class="pregunta">¿Cómo pueden llamarte?</p>
     <p class="ayuda">Para que una empresa pueda contactarte. Pon lo que tengas.</p>
     <label class="lab"><span class="t">Tu teléfono</span>
@@ -128,13 +144,13 @@ function contenido(p){
       <input data-k="ciudad" value="${esc(d.ciudad)}" placeholder="Madrid"></label>
     <label class="lab"><span class="t">Tu correo <span class="opcional">si tienes</span></span>
       <input data-k="email" inputmode="email" value="${esc(d.email)}" placeholder="tunombre@gmail.com"></label>`;
-  if(p===2) return `
+  if(p===3) return `
     <p class="pregunta">¿Has trabajado de algo?</p>
     <p class="ayuda">Vale cualquier trabajo: por horas, sin contrato, ayudando a alguien... Añade los que tengas. Si todavía no has trabajado, salta este paso.</p>
     <div id="lista-trab">${d.trabajos.map((t,i)=>itemTrab(t,i)).join("")}</div>
     <button class="add" data-add="trabajos">+ Añadir un trabajo</button>
     ${d.trabajos.length===0?`<button class="saltar" id="saltar">Todavía no he trabajado, saltar →</button>`:""}`;
-  if(p===3) return `
+  if(p===4) return `
     <p class="pregunta">¿Has cuidado de alguien?</p>
     <p class="ayuda">Cuidar de tus hijos, tus padres o un familiar es un trabajo muy importante. Si lo has hecho, lo ponemos en tu currículum con todo su valor.</p>
     <div class="opciones" style="margin-bottom:${d.haCuidado===true?'18px':'0'}">
@@ -151,10 +167,10 @@ function contenido(p){
       <label class="lab" style="margin-bottom:8px"><span class="t">Cuidando, ¿qué aprendiste a hacer bien?</span>
         <span class="ej">Toca las que sean verdad para ti</span></label>
       <div class="chips">${COMP_CUIDADO.map(c=>chip("cuidadoComp",c)).join("")}</div>`:""}`;
-  if(p===4) return `
-    <p class="pregunta">¿En qué eres buena?</p>
+  if(p===5) return `
+    <p class="pregunta">${g("¿En qué eres buena?","¿En qué eres bueno?")}</p>
     <p class="ayuda">Toca todo lo que se te dé bien. Lo que para ti es normal, para una empresa vale mucho.</p>
-    <div class="chips">${FORTALEZAS.map(f=>chip("fortalezas",f)).join("")}</div>
+    <div class="chips">${fortalezasLista().map(f=>chip("fortalezas",f)).join("")}</div>
     <div class="add-otro">
       <input id="nuevaFort" placeholder="¿Algo más? Escríbelo aquí">
       <button id="addFort">+ Añadir</button>
@@ -162,18 +178,19 @@ function contenido(p){
     <label class="lab" style="margin:24px 0 12px"><span class="t">¿Qué idiomas hablas? <span class="opcional">opcional</span></span></label>
     <div id="lista-idi">${d.idiomas.map((x,i)=>itemIdi(x,i)).join("")}</div>
     <button class="add" data-add="idiomas">+ Añadir un idioma</button>`;
-  if(p===5) return `
+  if(p===6) return `
     <p class="pregunta">¿Has estudiado o hecho cursos? <span class="opcional">opcional</span></p>
     <p class="ayuda">Vale el colegio, un curso, un taller o los cursos de Clara en Red. Si no tienes, salta este paso.</p>
     <div id="lista-est">${d.estudios.map((e,i)=>itemEst(e,i)).join("")}</div>
     <button class="add" data-add="estudios">+ Añadir un estudio o curso</button>
     ${d.estudios.length===0?`<button class="saltar" id="saltar">No tengo, saltar →</button>`:""}`;
 }
+function uniGen(val,texto){ const on=estado.d.genero===val; return `<button class="opcion ${on?"on":""}" data-gen="${val}"><span class="mc">${on?"✓":""}</span><span>${texto}</span></button>`; }
 function uni(k,val,texto){ const on=estado.d[k]===val; return `<button class="opcion ${on?"on":""}" data-uni="${k}" data-val="${val}"><span class="mc">${on?"✓":""}</span><span>${texto}</span></button>`; }
 function chip(k,val){ const on=estado.d[k].includes(val); return `<button class="chip ${on?"on":""}" data-chip="${k}" data-val="${esc(val)}">${val}</button>`; }
 function itemTrab(t,i){return `<div class="item">
   <div class="campo-mini"><span class="t">¿De qué trabajabas?</span>
-    <input data-arr="trabajos" data-i="${i}" data-f="puesto" placeholder="Limpiadora, camarera, dependienta..." value="${esc(t.puesto)}"></div>
+    <input data-arr="trabajos" data-i="${i}" data-f="puesto" placeholder="${g("Limpiadora, camarera, dependienta...","Limpiador, camarero, dependiente...")}" value="${esc(t.puesto)}"></div>
   <div class="campo-mini"><span class="t">¿Dónde? <span class="opcional">si quieres</span></span>
     <input data-arr="trabajos" data-i="${i}" data-f="empresa" placeholder="Nombre del sitio o de la familia" value="${esc(t.empresa)}"></div>
   <div class="campo-mini"><span class="t">¿Cuándo? <span class="opcional">si lo recuerdas</span></span>
@@ -216,7 +233,7 @@ function redactarPerfil(){
   }
   if(d.haCuidado){
     frases.push(pick([
-      "He dedicado tiempo al cuidado de mi familia, una labor que me ha hecho responsable, organizada y muy capaz de resolver.",
+      "He dedicado tiempo al cuidado de mi familia, una labor que me ha hecho "+g("responsable, organizada y muy capaz de resolver","responsable, organizado y muy capaz de resolver")+".",
       "Durante un tiempo me he ocupado del cuidado de mi familia, lo que me ha enseñado a organizarme y a no rendirme ante las dificultades.",
       "Cuidar de mi familia me ha convertido en una persona constante, paciente y resolutiva."
     ], sd+1));
@@ -231,14 +248,14 @@ function redactarPerfil(){
   frases.push(pick([
     "Soy una persona comprometida y con muchas ganas de trabajar y de seguir aprendiendo.",
     "Busco un trabajo donde poder aportar mi esfuerzo y mis ganas de crecer.",
-    "Soy trabajadora, de confianza y con muchas ganas de incorporarme a un nuevo equipo."
+    "Soy "+g("trabajadora, de confianza","trabajador, de confianza")+" y con muchas ganas de incorporarme a un nuevo equipo."
   ], sd+3));
   return frases.join(" ");
 }
 function titularAuto(){
   const d=estado.d;
   if(d.trabajos[0] && d.trabajos[0].puesto) return mayus(d.trabajos[0].puesto.toLowerCase());
-  if(d.haCuidado) return "Cuidadora con experiencia";
+  if(d.haCuidado) return g("Cuidadora con experiencia","Cuidador con experiencia");
   if(d.fortalezas[0]) return d.fortalezas[0];
   return "En búsqueda de empleo";
 }
@@ -317,6 +334,7 @@ function enlazar(){
   const d=estado.d, p=estado.paso;
   document.querySelectorAll("[data-k]").forEach(el=>el.addEventListener("input",e=>{ d[e.target.dataset.k]=e.target.value; }));
   document.querySelectorAll("[data-arr]").forEach(el=>el.addEventListener("input",e=>{ const{arr,i,f}=e.target.dataset; d[arr][i][f]=e.target.value; }));
+  document.querySelectorAll("[data-gen]").forEach(el=>el.addEventListener("click",e=>{ estado.d.genero=e.currentTarget.dataset.gen; render(); }));
   document.querySelectorAll("[data-uni]").forEach(el=>el.addEventListener("click",e=>{ const b=e.currentTarget; d[b.dataset.uni]= b.dataset.val==="true"; render(); }));
   document.querySelectorAll("[data-chip]").forEach(el=>el.addEventListener("click",e=>{ const{chip,val}=e.currentTarget.dataset; const a=d[chip]; d[chip]=a.includes(val)?a.filter(x=>x!==val):[...a,val]; render(); }));
   document.querySelectorAll("[data-idi]").forEach(el=>el.addEventListener("click",e=>{ const b=e.currentTarget; d.idiomas[b.dataset.idi].nivel=b.dataset.val; render(); }));
