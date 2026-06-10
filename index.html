@@ -182,23 +182,17 @@ const COMP_CUIDADO=["Organización","Paciencia","Resolver problemas","Tomar deci
 
 const NIVELES=["Es mi idioma","Lo hablo muy bien","Me defiendo","Lo hablo un poco"];
 
- 
-
 // ----- género: g(femenino, masculino) -----
 
 function esF(){ return estado.d.genero!=="hombre"; } // por defecto femenino
 
 function g(fem,masc){ return esF()?fem:masc; }
 
- 
-
 function fortalezasLista(){
 
   return ["Trato con la gente","Limpieza y orden","Cocinar","Cuidar a personas","Atención al cliente","Trabajar en equipo","Organizar y planificar","Vender","Manejar caja","Conducir","Aprender rápido","Tener paciencia",g("Ser responsable","Ser responsable"),"No rendirse fácil"];
 
 }
-
- 
 
 function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 
@@ -334,7 +328,7 @@ function contenido(p){
 
         <span class="ej">Toca las que sean verdad para ti</span></label>
 
-      <div class="chips">${COMP_CUIDADO.map(c=>chip("cuidadoComp",c)).join("")}</div>`:""};`;
+      <div class="chips">${COMP_CUIDADO.map(c=>chip("cuidadoComp",c)).join("")}</div`:""};
 
   if(p===5) return `
 
@@ -430,11 +424,59 @@ function pick(arr,seed){ return arr[seed % arr.length]; }
 
 function semilla(){ const s=estado.d.nombre||""; let n=0; for(let i=0;i<s.length;i++) n+=s.charCodeAt(i); return n; }
 
-function listar(arr){ arr=arr.filter(Boolean); if(arr.length===0) return ""; if(arr.length===1) return arr[0]; if(arr.length===2) return arr[0]+" y "+arr[1]; return arr.slice(0,-1).join(", ")+" y "+arr[arr.length-1]; }
+// "y" salvo que la palabra siguiente empiece por sonido "i" (i, hi-): entonces "e"
+
+function conj(siguiente){ return /^(i|hi)/i.test((siguiente||"").trim()) ? " e " : " y "; }
+
+function listar(arr){
+
+  arr=arr.filter(Boolean);
+
+  if(arr.length===0) return "";
+
+  if(arr.length===1) return arr[0];
+
+  if(arr.length===2) return arr[0]+conj(arr[1])+arr[1];
+
+  const ult=arr[arr.length-1];
+
+  return arr.slice(0,-1).join(", ")+conj(ult)+ult;
+
+}
 
 function mayus(s){return s? s.charAt(0).toUpperCase()+s.slice(1):s;}
 
-function frasePunto(s){ s=(s||"").trim(); if(!s) return ""; if(!/[.!?]$/.test(s)) s+="."; return mayus(s); }
+// Mayúscula inicial en cada palabra del nombre; partículas en minúscula
+
+function nombrePropio(s){
+
+  const minus=["de","del","la","las","los","y","da","do","dos","van","von"];
+
+  return (s||"").trim().toLowerCase().split(/\s+/).map((w,i)=>{
+
+    if(i>0 && minus.includes(w)) return w;
+
+    return w.charAt(0).toUpperCase()+w.slice(1);
+
+  }).join(" ");
+
+}
+
+// limpia espacios, pone mayúscula inicial y punto final
+
+function frasePunto(s){
+
+  s=(s||"").replace(/\s+/g," ").trim();
+
+  if(!s) return "";
+
+  s=s.replace(/\s+([.,;:!?])/g,"$1"); // sin espacio antes de puntuación
+
+  if(!/[.!?]$/.test(s)) s+=".";
+
+  return mayus(s);
+
+}
 
 function redactarPerfil(){
 
@@ -454,7 +496,7 @@ function redactarPerfil(){
 
         "Tengo experiencia trabajando como "+listar(puestos)+".",
 
-        "He trabajado como "+listar(puestos)+", y eso me ha dado oficio y soltura.",
+        "He trabajado como "+listar(puestos)+", lo que me ha dado oficio.",
 
         "Mi experiencia laboral es como "+listar(puestos)+"."
 
@@ -470,9 +512,9 @@ function redactarPerfil(){
 
       "He dedicado tiempo al cuidado de mi familia, una labor que me ha hecho "+g("responsable, organizada y muy capaz de resolver","responsable, organizado y muy capaz de resolver")+".",
 
-      "Durante un tiempo me he ocupado del cuidado de mi familia, lo que me ha enseñado a organizarme y a no rendirme ante las dificultades.",
+      "Durante un tiempo me he ocupado del cuidado de mi familia, lo que me ha enseñado a organizarme.",
 
-      "Cuidar de mi familia me ha convertido en una persona constante, paciente y resolutiva."
+      "Cuidar de mi familia me ha convertido en una persona constante, paciente, resolutiva."
 
     ], sd+1));
 
@@ -494,15 +536,49 @@ function redactarPerfil(){
 
   frases.push(pick([
 
-    "Soy una persona comprometida y con muchas ganas de trabajar y de seguir aprendiendo.",
+    "Soy una persona comprometida, con muchas ganas de trabajar.",
 
-    "Busco un trabajo donde poder aportar mi esfuerzo y mis ganas de crecer.",
+    "Busco un trabajo donde poder aportar mi esfuerzo.",
 
-    "Soy "+g("trabajadora, de confianza","trabajador, de confianza")+" y con muchas ganas de incorporarme a un nuevo equipo."
+    "Soy "+g("trabajadora, de confianza","trabajador, de confianza")+", con ganas de incorporarme a un nuevo equipo."
 
   ], sd+3));
 
-  return frases.join(" ");
+  return pulir(frases.join(" "));
+
+}
+
+// Normaliza el texto final: espacios, mayúscula tras punto, evita "y ... y" muy cercanos
+
+function pulir(t){
+
+  t=(t||"").replace(/\s+/g," ").trim();
+
+  t=t.replace(/\s+([.,;:!?])/g,"$1");
+
+  // si hay dos " y " en la misma frase y muy cerca, suaviza el primero a coma
+
+  t=t.replace(/([^.!?]*?) y ([^.!?]*?) y /g, function(m, a, b){
+
+    // solo si el primer tramo "b" es corto (palabras encadenadas), usa coma
+
+    if(b.split(" ").length<=3) return a+", "+b+" y ";
+
+    return m;
+
+  });
+
+  // mayúscula después de punto
+
+  t=t.replace(/([.!?])\s+([a-záéíóúñ])/g,(m,p,c)=>p+" "+c.toUpperCase());
+
+  // primera letra
+
+  t=t.charAt(0).toUpperCase()+t.slice(1);
+
+  if(!/[.!?]$/.test(t)) t+=".";
+
+  return t;
 
 }
 
@@ -530,7 +606,7 @@ function textoCuidado(){
 
   let p=pick([
 
-    "Me dediqué al cuidado "+(quien||"de mi familia"),
+    "Me dedicé al cuidado "+(quien||"de mi familia"),
 
     "Durante un tiempo me ocupé del cuidado "+(quien||"de mi familia"),
 
@@ -558,11 +634,11 @@ function textoCuidado(){
 
   }
 
-  return p;
+  return pulir(p);
 
 }
 
-function tareaRedactada(t){ return frasePunto(t.tareas); }
+function tareaRedactada(t){ return pulir(t.tareas); }
 
 function vistaCV(){
 
@@ -610,7 +686,7 @@ function vistaCV(){
 
     <main>
 
-      <h1>${esc(d.nombre)||"Tu nombre"}</h1>
+      <h1>${esc(nombrePropio(d.nombre))||"Tu nombre"}</h1>
 
       <div class="tit">${esc(titularAuto())}</div>
 
@@ -731,4 +807,3 @@ render();
 </body>
 
 </html>
- 
