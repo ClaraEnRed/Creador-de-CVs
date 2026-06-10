@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Clara en Red · Mi currículum</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   :root{ --azul:#1C435A; --dorado:#C4A03C; --crema:#F7F4EC; --gris:#5A6B74; --linea:#d7d2c4; }
   *{box-sizing:border-box;}
@@ -55,8 +56,8 @@
   .guia-guardar{background:var(--crema);border:2px solid #e7e1d2;border-radius:14px;padding:16px 18px;margin-top:16px;}
   .guia-guardar h4{margin:0 0 10px;font-size:15px;color:var(--azul);}
   .guia-guardar ol{margin:0;padding-left:20px;color:var(--gris);font-size:14.5px;line-height:1.7;}
-  .cv{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(28,67,90,.12);display:grid;grid-template-columns:35% 65%;}
-  .cv aside{background:var(--azul);color:#fff;padding:30px 20px;}
+  .cv{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(28,67,90,.12);display:grid;grid-template-columns:35% 65%;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .cv aside{background:var(--azul);color:#fff;padding:30px 20px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .cv .acc{width:50px;height:4px;background:var(--dorado);margin-bottom:22px;}
   .cv .sec{margin-bottom:22px;}
   .cv aside h3{font-size:11.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--dorado);margin:0 0 9px;}
@@ -74,7 +75,8 @@
   .cv .tareas{margin:5px 0 0;color:var(--gris);font-size:14px;line-height:1.55;}
   .cv .perfil{margin:0;color:var(--gris);font-size:14.5px;line-height:1.6;}
   @media print{ .no-print{display:none !important;} body{background:#fff;padding:0;} .cv{box-shadow:none;border-radius:0;} }
-  @media(max-width:560px){ .cv{grid-template-columns:1fr;} .cv aside{padding:24px 22px;} .cv main{padding:26px 22px;} }
+  @media(max-width:560px){ .cv:not(.pdf-export){grid-template-columns:1fr;} .cv:not(.pdf-export) aside{padding:24px 22px;} .cv:not(.pdf-export) main{padding:26px 22px;} }
+  .cv.pdf-export{grid-template-columns:35% 65% !important;}
 </style>
 </head>
 <body>
@@ -100,7 +102,12 @@ function fortalezasLista(){
 }
 
 function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-function render(){ document.getElementById("app").innerHTML=vista(); enlazar(); window.scrollTo(0,0); }
+function render(subir){
+  const y = window.scrollY;
+  document.getElementById("app").innerHTML=vista();
+  enlazar();
+  if(subir) window.scrollTo(0,0); else window.scrollTo(0,y);
+}
 function vista(){
   const p=estado.paso;
   if(p===TOTAL) return vistaCV();
@@ -331,9 +338,9 @@ function vistaCV(){
   return `
   <div class="no-print" style="display:flex;gap:11px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;">
     <button class="btn btn-sec" id="editar" style="flex:none;padding:14px 22px;font-size:16px;">← Cambiar algo</button>
-    <button class="btn btn-oro" id="imprimir" style="flex:none;padding:14px 22px;font-size:16px;">Guardar mi currículum</button>
+    <button class="btn btn-oro" id="descargar" style="flex:none;padding:14px 22px;font-size:16px;">⬇ Descargar mi currículum</button>
   </div>
-  <div class="cv">
+  <div class="cv" id="cv-pdf">
     <aside>
       <div class="acc"></div>
       ${tieneContacto?`<div class="sec"><h3>Contacto</h3>
@@ -363,11 +370,11 @@ function vistaCV(){
     </main>
   </div>
   <div class="guia-guardar no-print">
-    <h4>¿Cómo guardo mi currículum en el móvil?</h4>
+    <h4>¿Cómo descargo mi currículum?</h4>
     <ol>
-      <li>Pulsa el botón dorado <b>"Guardar mi currículum"</b>.</li>
-      <li>En la pantalla que aparece, busca <b>"Guardar como PDF"</b> y tócalo.</li>
-      <li>Pulsa <b>Guardar</b>. ¡Ya está en tu móvil para enviarlo!</li>
+      <li>Pulsa el botón dorado <b>"⬇ Descargar mi currículum"</b>.</li>
+      <li>Espera unos segundos: se guardará un archivo PDF en tu teléfono u ordenador.</li>
+      <li>Búscalo en tus <b>Descargas</b> o en el aviso que aparece. ¡Ya puedes enviarlo por WhatsApp o correo!</li>
     </ol>
   </div>`;
 }
@@ -392,15 +399,45 @@ function enlazar(){
   const nf=document.getElementById("nuevaFort");
   if(nf) nf.addEventListener("keydown",e=>{ if(e.key==="Enter"){const v=e.target.value.trim(); if(v){d.fortalezas.push(v); render();}} });
   const saltar=document.getElementById("saltar");
-  if(saltar) saltar.addEventListener("click",()=>{ estado.paso++; render(); });
+  if(saltar) saltar.addEventListener("click",()=>{ estado.paso++; render(true); });
   const atras=document.getElementById("atras");
-  if(atras) atras.addEventListener("click",()=>{ if(p>0){estado.paso--; render();} });
+  if(atras) atras.addEventListener("click",()=>{ if(p>0){estado.paso--; render(true);} });
   const sig=document.getElementById("siguiente");
-  if(sig) sig.addEventListener("click",()=>{ estado.paso++; render(); });
+  if(sig) sig.addEventListener("click",()=>{ estado.paso++; render(true); });
   const editar=document.getElementById("editar");
-  if(editar) editar.addEventListener("click",()=>{ estado.paso=0; render(); });
-  const imp=document.getElementById("imprimir");
-  if(imp) imp.addEventListener("click",()=>window.print());
+  if(editar) editar.addEventListener("click",()=>{ estado.paso=0; render(true); });
+  const desc=document.getElementById("descargar");
+  if(desc) desc.addEventListener("click",function(){
+    const cv=document.getElementById("cv-pdf");
+    if(!cv){ return; }
+    const btn=this;
+    const textoOrig=btn.innerHTML;
+    btn.innerHTML="Preparando tu PDF...";
+    btn.disabled=true;
+    const nombreArchivo = "CV "+(nombrePropio(estado.d.nombre)||"Clara en Red")+".pdf";
+    // forzar ancho de escritorio para que el PDF salga a dos columnas
+    const anchoOrig = cv.style.width;
+    cv.style.width = "780px";
+    cv.classList.add("pdf-export");
+    const restaurar = ()=>{ cv.style.width = anchoOrig; cv.classList.remove("pdf-export"); btn.innerHTML=textoOrig; btn.disabled=false; };
+    const opciones={
+      margin:0,
+      filename:nombreArchivo,
+      image:{type:"jpeg",quality:0.98},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",windowWidth:820},
+      jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
+    };
+    if(typeof html2pdf==="undefined"){
+      alert("No se pudo cargar el generador de PDF. Comprueba tu conexión a internet e inténtalo de nuevo.");
+      restaurar(); return;
+    }
+    html2pdf().set(opciones).from(cv).save().then(()=>{
+      restaurar();
+    }).catch(()=>{
+      alert("Hubo un problema al crear el PDF. Inténtalo otra vez.");
+      restaurar();
+    });
+  });
 }
 render();
 </script>
