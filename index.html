@@ -90,15 +90,15 @@ const estado={ paso:0, d:{
 }};
 const COMP_CUIDADO=["Organización","Paciencia","Resolver problemas","Tomar decisiones","Estar pendiente de todo","Tratar con médicos y trámites","Aguantar bajo presión","Gestionar emociones"];
 const NIVELES=["Es mi idioma","Lo hablo muy bien","Me defiendo","Lo hablo un poco"];
- 
+
 // ----- género: g(femenino, masculino) -----
 function esF(){ return estado.d.genero!=="hombre"; } // por defecto femenino
 function g(fem,masc){ return esF()?fem:masc; }
- 
+
 function fortalezasLista(){
   return ["Trato con la gente","Limpieza y orden","Cocinar","Cuidar a personas","Atención al cliente","Trabajar en equipo","Organizar y planificar","Vender","Manejar caja","Conducir","Aprender rápido","Tener paciencia",g("Ser responsable","Ser responsable"),"No rendirse fácil"];
 }
- 
+
 function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function render(){ document.getElementById("app").innerHTML=vista(); enlazar(); window.scrollTo(0,0); }
 function vista(){
