@@ -76,7 +76,8 @@
   .cv .exp{margin-bottom:15px;}
   .cv .fila{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
   .cv .puesto{color:var(--azul);font-size:15px;font-weight:700;}
-  .cv .fecha{color:var(--dorado);font-size:12.5px;font-weight:600;white-space:nowrap;}
+  .cv .fecha{color:var(--dorado);font-size:12.5px;font-weight:600;text-align:right;}
+  .cv .ultimo-tag{font-style:italic;font-weight:600;font-size:10.5px;background:var(--dorado);color:#fff;padding:2px 7px;border-radius:99px;text-transform:uppercase;letter-spacing:.3px;}
   .cv .empresa{color:var(--gris);font-size:13.5px;font-style:italic;}
   .cv .tareas{margin:5px 0 0;color:var(--gris);font-size:14px;line-height:1.55;}
   .cv .perfil{margin:0;color:var(--gris);font-size:14.5px;line-height:1.6;}
@@ -395,9 +396,9 @@ function vistaCV(){
       <h1>${esc(nombrePropio(d.nombre))||"Tu nombre"}</h1>
       <div class="tit">${esc(titularAuto())}</div>
       <div class="sm"><h2>Sobre mí</h2><p class="perfil">${esc(redactarPerfil())}</p></div>
-      ${trabajos.length?`<div class="sm"><h2>Experiencia</h2>${trabajos.map(t=>
+      ${trabajos.length?`<div class="sm"><h2>Experiencia</h2>${trabajos.map((t,idx)=>
         `<div class="exp">
-          <div class="fila"><span class="puesto">${esc(mayus((t.puesto||"Trabajo").toLowerCase()))}</span><span class="fecha">${esc(t.fechas)}</span></div>
+          <div class="fila"><span class="puesto">${esc(mayus((t.puesto||"Trabajo").toLowerCase()))}</span><span class="fecha">${idx===0&&t.fechas?`<span class="ultimo-tag">último trabajo</span> `:""}${esc(t.fechas)}</span></div>
           ${t.empresa?`<div class="empresa">${esc(t.empresa)}</div>`:""}
           ${t.tareas?`<p class="tareas">${esc(tareaRedactada(t))}</p>`:""}
         </div>`).join("")}</div>`:""}
