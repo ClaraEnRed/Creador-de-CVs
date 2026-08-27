@@ -8,6 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- GoatCounter: analítica sin cookies, sin banner de consentimiento -->
+<script data-goatcounter="https://contadordelalandingpage.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
 <style>
   :root{
     --navy:#3A7593;
@@ -173,7 +176,7 @@
 <div class="wrap">
 
   <header>
-    <img src="https://claraenred.org/wp-content/uploads/2025/05/claraenred-logo.png" alt="Clara en Red">
+    <img src="logo.png" alt="Clara en Red">
   </header>
 
   <p class="eyebrow">Fundación Atilano Sánchez Sánchez</p>
@@ -191,7 +194,7 @@
 
   <div class="cta-block">
     <p>Cuando estés lista, completa tu <strong>formulario de experiencia y formación</strong>.</p>
-    <a class="btn" href="https://form.jotform.com/253475439619368" target="_blank" rel="noopener">Completar mi perfil</a>
+    <a class="btn goatcounter-click" data-goatcounter-click="cta_completar_perfil" href="https://form.jotform.com/253475439619368" target="_blank" rel="noopener">Completar mi perfil</a>
     <p class="note">Tardarás unos 15–20 minutos. Puedes guardarlo y continuar más tarde si lo necesitas.</p>
   </div>
 
@@ -211,6 +214,9 @@
   const card = document.getElementById('videoCard');
   card.addEventListener('click', function(){
     card.innerHTML = '<iframe src="https://www.youtube.com/embed/uqs0FP21GL8?autoplay=1&rel=0" title="Clara en Red" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+    if (window.goatcounter && window.goatcounter.count) {
+      window.goatcounter.count({ path: 'video_play', event: true });
+    }
   }, { once: true });
 </script>
 
